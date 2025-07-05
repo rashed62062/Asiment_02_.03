@@ -1,58 +1,64 @@
-import React from 'react';
-import { FaUserShield, FaUser } from 'react-icons/fa';
+import { FaUser } from 'react-icons/fa';
+import useCompanyInfo from '../../../../../hooks/useCompanyInfo';
+import useAuth from '../../../../../hooks/useAuth';
 
 const TeamMembers = () => {
-  // Sample team member data
-  const members = [
-    {
-      id: 1,
-      name: 'John Doe',
-      image: 'https://i.postimg.cc/DZFLMKy2/certificate.jpg',
-      type: 'admin', // Can be 'admin' or 'normal'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      image: 'https://i.postimg.cc/DZFLMKy2/certificate.jpg',
-      type: 'normal', // Can be 'admin' or 'normal'
-    },
-    {
-      id: 3,
-      name: 'Alice Johnson',
-      image: 'https://i.postimg.cc/xdVzXSmK/user3.jpg',
-      type: 'admin', // Can be 'admin' or 'normal'
-    },
-  ];
+  const { user } = useAuth();
+  const { companyData, loading, error } = useCompanyInfo(user?.email);
+
+  if (loading) return <p className="text-blue-500 text-center mt-10">Loading company info...</p>;
+  if (error) return <p className="text-red-500 text-center mt-10">{error}</p>;
 
   return (
-    <section className="bg-gradient-to-r from-blue-100 to-purple-200 py-16">
+    <section className="bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 py-16 min-h-screen">
       <div className="container mx-auto px-6 lg:px-20">
-        <h2 className="text-4xl font-bold text-center text-gray-800 mb-8">
-          My team Members 
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {members.map((member) => (
-            <div
-              key={member.id}
-              className="bg-white shadow-lg transform transition-all hover:scale-105 hover:shadow-xl rounded-xl p-6 text-center relative overflow-hidden"
-            >
-              <img
-                src={member.image}
-                alt={member.name}
-                className="w-24 h-24 rounded-full mx-auto mb-4 transition-transform duration-300 hover:scale-110"
-              />
-              <h3 className="text-xl font-semibold text-gray-800">{member.name}</h3>
-              <div className="mt-2 flex justify-center items-center">
-                {member.type === 'admin' ? (
-                  <FaUserShield className="text-blue-600 text-2xl" />
-                ) : (
-                  <FaUser className="text-gray-600 text-2xl" />
-                )}
-                <span className="ml-2 text-sm font-medium text-gray-500">{member.type}</span>
-              </div>
+        {/* Company Header */}
+        <div className="flex flex-col items-center justify-center text-center gap-4 mb-12">
+  <img
+    src={companyData?.companyLogo || 'https://i.ibb.co/7WBNM9N/default-avatar.png'}
+    alt="Company Logo"
+    className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md"
+  />
+  <div></div>
+          <div className="text-center align-middle sm:text-left">
+            <h2 className="text-5xl font-bold  text-gray-800">{companyData?.companyName}</h2>
+            <p className="text-gray-600 text-md">Total Employees: {companyData?.totalEmployees || 0}</p>
+          </div>
+        </div>
 
-              {/* Hover Overlay for Extra Interactivity */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 hover:opacity-30 transition-opacity duration-300"></div>
+        {/* Section Title */}
+        <h3 className="text-2xl font-semibold mb-8 text-gray-700 border-b-2 border-purple-400 inline-block">
+          Team Members
+        </h3>
+
+        {/* Team Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {companyData?.employees?.map((emp, index) => (
+            <div
+              key={index}
+              className="relative bg-white shadow-lg hover:shadow-2xl transition duration-300 rounded-2xl p-6 text-center overflow-hidden group"
+            >
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl z-0"></div>
+
+              {/* Image */}
+              <img
+                src={emp?.companyLogo || 'https://i.ibb.co/7WBNM9N/default-avatar.png'}
+                alt={emp?.name}
+                className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-white object-cover z-10 relative"
+              />
+
+              {/* Info */}
+              <h4 className="text-xl font-semibold text-gray-800 z-10 relative">{emp?.name}</h4>
+              <p className="text-gray-500 text-sm mb-3 z-10 relative">{emp?.email}</p>
+
+              {/* Role */}
+              <div className="flex justify-center items-center gap-2 z-10 relative">
+                <FaUser className="text-purple-600" />
+                <span className="text-sm text-gray-700 font-medium bg-purple-100 px-3 py-1 rounded-full">
+                  Member
+                </span>
+              </div>
             </div>
           ))}
         </div>

@@ -1,49 +1,64 @@
 import { useContext, useState } from "react";
-// import DatePicker from 'react-datepicker';
-// import 'react-datepicker/dist/react-datepicker.css';
+import { useForm } from "react-hook-form";
 import { AuthContext } from "../../providers/AuthProvider";
-import axios from "axios";
 import toast from "react-hot-toast";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 
-const AddPlantForm = () => {
+const AddAssetForm = () => {
   const { user } = useContext(AuthContext);
-
-  
+  const axiosSecure = useAxiosSecure();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      name: "",
+      productType: "Returnable",
+      quantity: 1,
+    },
+  });
+
+  const onSubmit = async (data) => {
     setLoading(true);
     setError(null);
     setSuccess(false);
 
-    const form = event.target;
-    const name = form.name.value;
-    const productType = form.productType.value;
-    const quantity = parseFloat(form.quantity.value);
-    const AddDate =  new Date().toISOString()
+    // Quantity validation
+    if (data.quantity <= 0) {
+      setError("Quantity must be greater than zero.");
+      setLoading(false);
+      return;
+    }
 
     const formData = {
-      name,
+      name: data.name,
       HR: {
         email: user?.email,
         name: user?.displayName,
       },
-      productType,
-      quantity,
-      AddDate,
+      productType: data.productType,
+      quantity: parseFloat(data.quantity),
+      AddDate: new Date().toISOString(),
     };
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/assets`, formData);
+      await axiosSecure.post(`/assets`, formData);
       setSuccess(true);
-      form.reset(); // Reset form after success
-      toast.success('added successfully asset')
+      reset(); // Reset form after success
+      toast.success("Asset added successfully!");
     } catch (error) {
-      setError("Failed to add the asset. Please try again.",error);
-      toast.error('Failed to add the asset',error);
+      const errorMsg =
+        error?.response?.data?.message ||
+        error.message ||
+        "Failed to add the asset. Please try again.";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -55,7 +70,7 @@ const AddPlantForm = () => {
         <h2 className="text-2xl font-semibold text-gray-800 text-center mb-8">
           Add a New Asset
         </h2>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* Left Section */}
             <div className="space-y-6">
@@ -69,22 +84,24 @@ const AddPlantForm = () => {
                 </label>
                 <input
                   className="w-full px-4 py-3 text-gray-800 border border-lime-300 focus:ring-2 focus:ring-lime-500 rounded-md bg-white shadow-sm"
-                  name="name"
                   id="name"
                   type="text"
                   placeholder="Product Name"
-                  required
+                  {...register("name", { required: "Product name is required" })}
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
+                )}
               </div>
-              {/* Select Product Type */}
+              {/* Product Type */}
               <div className="space-y-1 text-sm">
                 <label htmlFor="productType" className="block text-gray-600">
                   Product Type
                 </label>
                 <select
-                  required
                   className="w-full px-4 py-3 border border-lime-300 focus:ring-2 focus:ring-lime-500 rounded-md bg-white shadow-sm"
-                  name="productType"
+                  id="productType"
+                  {...register("productType")}
                 >
                   <option value="Returnable">Returnable</option>
                   <option value="Non-returnable">Non-returnable</option>
@@ -104,17 +121,25 @@ const AddPlantForm = () => {
                 </label>
                 <input
                   className="w-full px-4 py-3 text-gray-800 border border-lime-300 focus:ring-2 focus:ring-lime-500 rounded-md bg-white shadow-sm"
-                  name="quantity"
                   id="quantity"
                   type="number"
                   placeholder="Available Quantity"
                   min="1"
-                  required
+                  {...register("quantity", {
+                    required: "Quantity is required",
+                    min: {
+                      value: 1,
+                      message: "Quantity must be at least 1",
+                    },
+                    valueAsNumber: true,
+                  })}
                 />
+                {errors.quantity && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.quantity.message}
+                  </p>
+                )}
               </div>
-
-
-              
             </div>
           </div>
 
@@ -131,12 +156,12 @@ const AddPlantForm = () => {
             </button>
           </div>
 
-          {/* Error or Success Message */}
-          {error && (
-            <p className="text-red-600 text-center mt-4">{error}</p>
-          )}
+          {/* Feedback Messages */}
+          {error && <p className="text-red-600 text-center mt-4">{error}</p>}
           {success && (
-            <p className="text-green-600 text-center mt-4">Asset added successfully!</p>
+            <p className="text-green-600 text-center mt-4">
+              Asset added successfully!
+            </p>
           )}
         </form>
       </div>
@@ -144,4 +169,4 @@ const AddPlantForm = () => {
   );
 };
 
-export default AddPlantForm;
+export default AddAssetForm;

@@ -1,29 +1,32 @@
-import axios from "axios";
+
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import useAuth from "../../../../../hooks/useAuth";
-import { AuthContext } from "../../../../../providers/AuthProvider";
+import useAxiosSecure from "../../../../../hooks/useAxiosSecure";
 
 const AssetPage = () => {
-  const {user} = useAuth(AuthContext)
+  const axiosSecure = useAxiosSecure()
+  const {user} = useAuth()
   const [search, setSearch] = useState("");
   const [availability, setAvailability] = useState("");
   const [type, setType] = useState("");
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [notes, setNotes] = useState("");
   const [assets, setAssets] = useState([]);
+  console.log("🚀 ~ AssetPage ~ assets:", assets)
   const [loading, setLoading] = useState(false);
 
   // Fetch assets when search or filters change
   useEffect(() => {
     fetchAllAssets();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, availability, type]);
 
   // Fetch assets with search and filters
   const fetchAllAssets = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/all-assets`, {
+      const { data } = await axiosSecure.get("/all-assets", {
         params: {
           search,
           availability,
@@ -38,31 +41,31 @@ const AssetPage = () => {
     }
   };
 
+
   // Handle request submission
   const handleRequest = async () => {
     if (!selectedAsset) return;
 
     const requestData = {
+     HR: {
+    name: user?.displayName,
+    email: user?.email,
+  },
       assetId: selectedAsset._id,
       notes,
-      
       productQuantity: selectedAsset.productQuantity,
       productType: selectedAsset.productType,
       requestDate: new Date().toISOString(),
-      
       requestedBy:{
         email: user?.email,
         name: user?.displayName,
       },
       status:'pending',
-     
       name: selectedAsset.name,
-      
-
     };
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/request-asset`, requestData);
+      await axiosSecure.post("/request-asset", requestData);
       toast.success("Request submitted successfully!");
       setSelectedAsset(null);
       setNotes("");

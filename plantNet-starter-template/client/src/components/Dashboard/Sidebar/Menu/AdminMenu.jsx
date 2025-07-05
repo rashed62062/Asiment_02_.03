@@ -1,11 +1,14 @@
 import { FaUserCog } from 'react-icons/fa'
 import MenuItem from './MenuItem'
+import { AiOutlineHome } from 'react-icons/ai';
 
 const AdminMenu = () => {
   return (
     <>
-      {/* <MenuItem icon={FaUserCog} label='Manage Users' address='manage-users' /> */}
+      <MenuItem icon={AiOutlineHome} label='Home' address='HrHome' />
+
       <MenuItem icon={FaUserCog} label='Asset List' address='asset-list' />
+    
       <MenuItem icon={FaUserCog} label='Add an Asset' address='add-an-asset' />
       <MenuItem icon={FaUserCog} label='All Requests' address='all-requests' />
       <MenuItem icon={FaUserCog} label='My Employee' address='my-employee' />
@@ -14,4 +17,4 @@ const AdminMenu = () => {
   )
 }
 
-export default AdminMenu
+export default AdminMenu;
